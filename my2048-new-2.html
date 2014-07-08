@@ -1,0 +1,481 @@
+<html>
+<head>
+	<title>
+		my 2048
+	</title>
+	<style>
+	.container {
+		background-color:#bbada0;
+		margin-top: 40px;
+		position: relative;
+		padding: 15px;
+		cursor: default;
+		touch-action: none;
+		border-radius: 6px;
+		width: 500px;
+		height: 500px;
+		-webkit-box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		box-sizing: border-box;	
+		margin:auto;
+	}
+		
+	
+	.container_row {
+		box-sizing: border-box;	
+	}
+	
+	.backgroundCell {
+		width: 110px;
+		height: 110px;
+		margin-right: 10px;
+		margin-bottom:10px;
+		float: left;
+		border-radius: 3px;
+		background: rgba(238, 228, 218, 0.35);
+		box-shadow:0 4px 10px rgba(0,0,0,.1);
+	}
+	.container_row>.backgroundCell:last-child {
+		margin-right:0px;
+	}
+	
+	.cell {
+		position:absolute;
+		width: 110px;
+		height: 110px;
+		margin-right: 10px;
+		margin-bottom:10px;
+		float: left;
+		border-radius: 3px;
+		background: rgba(238, 228, 218, 0.35);
+		box-shadow:0 4px 10px rgba(0,0,0,.1);
+		font-size: 70px;
+		font-family: -webkit-body;
+		font-style: inherit;
+		/* font-variant: small-caps; */
+		text-align: center;
+		vertical-align: middle;
+		line-height: 110px;
+		-webkit-transition: all .4s;
+	}
+	.container_row>.cell:last-child {
+		margin-right:0px;
+	}
+	div {
+		display:block;
+	}
+	
+	body {
+		margin:0;
+		padding:0;
+		
+	}
+	</style>
+</head>
+
+
+<body>
+	<div class="container">
+		
+	
+	</div>
+</body>
+</html>
+<script src="jq.js.txt"></script>
+<script>
+	//画背景图形
+	function drawBackground(size){
+		var k = 0;
+		for(var i = 0; i<size; i++){
+			var dom = $('<div class="container_row '+'container_row'+i+'"></div>');
+			$('.container').append(dom);
+			for(var j = 0; j<size; j++){
+				var dom = $('<div class="'+'backgroundCell'+k+''+' backgroundCell"'+'></div>');
+				$('.container_row'+i).append(dom);
+				k++;
+			}
+		}
+	}
+	 var map = [];
+	 function Cell(){
+		this.dom = $('<div class="cell"></div>');
+		$('.container').append(this.dom); 
+		
+	 }
+	 Cell.prototype.setValue = function(value){
+		this.value = value;
+		this.dom.html(value);
+	 }
+	 Cell.prototype.setXY = function(x, y){
+		this.x = x;
+		this.y = y;
+		var domBackgroundCell = $(".backgroundCell"+(y*4+x));
+		var backgroundCellOffset = domBackgroundCell.offset();
+				
+		var domContainer = $(".container");
+		var containerOffset = domContainer.offset();
+				
+		var leftValue = backgroundCellOffset.left - containerOffset.left;
+		var topValue = backgroundCellOffset.top - containerOffset.top;
+		this.dom.css("left",leftValue+'px');
+		this.dom.css("top",topValue+'px');
+	 }
+	 Cell.prototype.delCell = function (){
+		this.dom.remove();
+	 }
+	 
+	function initMapArr(size){
+		//给数组每个元素进行初始化 为0
+		for (var i = 0; i < size; i++) {
+			map[i] = [];
+			for (var j = 0; j < size; j++) {
+			map[i][j] = 0;
+			}
+		}
+		return map;
+	}
+	
+	function rand(max){
+		Rand = Math.floor(Math.random() * max);
+		return Rand;
+	}
+	
+	//随机生成initcount个数值	为1
+	function getInitField(size, initCount) {
+		var emptyArr = [];
+		for(var m=0; m<size; m++){
+			for(var n=0; n<size; n++){
+				if(map[m][n] == 0){
+					emptyArr.push({n:n,m:m});
+				}
+			}
+		}
+		if(emptyArr.length != 0){
+			var pos;
+			var n;
+			var m;
+			pos = rand(emptyArr.length);
+			n = emptyArr[pos].n;
+			m = emptyArr[pos].m;
+			var cell = new Cell();
+			cell.setValue(2);
+			cell.setXY(n, m);
+			map[m][n] = cell;
+		}
+	
+		return map;
+		
+	}	
+	
+	var size = 4;
+	var numCount = 2;
+	drawBackground(4);
+	var map = initMapArr(size);
+	var map = getInitField(size, numCount);
+	
+	var cellDom = $('body');
+		
+	function turnLeft(size){
+		for(var j=0; j<size; j++){
+			for(var i=0; i<size; i++){
+				if(map[j][i]){
+					var m = i-1;
+						
+					while(m>=-1){
+						
+						if(m != -1 && !map[j][m]){
+							m = m-1;
+						}else {
+							if(m != -1 && (map[j][m].value == map[j][i].value)){
+								map[j][m].setValue((map[j][m].value * 2));
+								map[j][i].delCell();
+								map[j][i] = 0;
+							}else{
+								if(m+1!=i){
+								map[j][m+1] = map[j][i];
+								map[j][m+1].setXY(m+1, j);
+								map[j][i] = 0;
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	function testTurnLeft(size){
+		for(var j=0; j<size; j++){
+			for(var i=0; i<size; i++){
+				if(map[j][i]){
+					var m = i-1; 
+					while(m>=-1){	
+						if(m != -1 && !map[j][m]){
+							return 1;
+						}else {
+							if(m != -1 && (map[j][m].value == map[j][i].value)){
+								return 1;
+							}else{
+								if(m+1!=i){
+									return 1;
+								}
+							}
+							break;
+						}
+					}
+				}else{
+					return 1;
+				}
+			}
+		}
+		alert("cannot move");
+		return 0;
+	}
+	
+	function turnRight(size){
+		for(var j=0; j<size; j++){
+			for(var i=size-1; i>=0; i--){
+				if(map[j][i]){
+					var m = i+1;
+							
+					while(m<=4){
+								
+						if(m != 4 && !map[j][m]){
+							return 1;
+						}else {
+							if(m != 4 && (map[j][m].value == map[j][i].value)){
+								return 1;
+							}else{
+								if(m-1!=i){
+									return 1;
+								}
+							}
+							break;
+						}
+					}
+				}else{
+					return 1;
+				}
+			}
+		}
+		alert("cannot move");
+		return 0;
+	}
+	
+	function testTurnRight(size){
+		for(var j=0; j<size; j++){
+			for(var i=size-1; i>=0; i--){
+				if(map[j][i]){
+					var m = i+1;
+							
+					while(m<=4){
+								
+						if(m != 4 && !map[j][m]){
+							m = m+1;
+						}else {
+							if(m != 4 && (map[j][m].value == map[j][i].value)){
+								map[j][m].setValue((map[j][m].value * 2));
+								map[j][i].delCell();
+								map[j][i] = 0;
+							}else{
+								if(m-1!=i){
+									map[j][m-1] = map[j][i];
+									map[j][m-1].setXY(m-1, j);
+									map[j][i] = 0;
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	function turnUp(size){
+		for(var j=0; j<size; j++){
+			for(var i=0; i<size; i++){
+				if(map[i][j]){
+					var m = i-1;
+							
+					while(m>=-1){
+								
+						if(m != -1 && !map[m][j]){
+							m = m-1;
+						}else {
+							if(m != -1 && (map[m][j].value == map[i][j].value)){
+								map[m][j].setValue((map[m][j].value * 2));
+								map[i][j].delCell();
+								map[i][j] = 0;
+							}else{
+								if(m+1!=i){
+									map[m+1][j] = map[i][j];
+									map[m+1][j].setXY(j, m+1);
+									map[i][j] = 0;
+								}
+							}
+							break;	
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	function testTurnUp(size){
+		for(var j=0; j<size; j++){
+			for(var i=0; i<size; i++){
+				if(map[i][j]){
+					var m = i-1;
+							
+					while(m>=-1){
+								
+						if(m != -1 && !map[m][j]){
+							return 1;
+						}else {
+							if(m != -1 && (map[m][j].value == map[i][j].value)){
+								return 1;
+							}else{
+								if(m+1!=i){
+									return 1;
+								}
+							}
+							break;	
+						}
+					}
+				}else{
+					return 1;
+				}
+			}
+		}
+		alert("cannot move");
+		return 0;
+	}
+	
+	function turnDown(size){
+		for(var j=0; j<size; j++){
+			for(var i=size-1; i>=0; i--){
+				if(map[i][j]){
+					var m = i+1;
+						
+					while(m<=4){
+						
+						if(m != 4 && !map[m][j]){
+							m = m+1;
+						}else {
+							if(m != 4 && (map[m][j].value == map[i][j].value)){
+								map[m][j].setValue((map[m][j].value * 2));
+								map[i][j].delCell();
+								map[i][j] = 0;
+							}else{
+								if(m-1!=i){
+									map[m-1][j] = map[i][j];
+									map[m-1][j].setXY(j, m-1);
+									map[i][j] = 0;
+								}
+							}
+							break;	
+						}
+					}
+				}
+			}
+		}	
+	}
+	
+	function testTurnDown(size){
+		for(var j=0; j<size; j++){
+			for(var i=size-1; i>=0; i--){
+				if(map[i][j]){
+					var m = i+1;
+							
+					while(m<=4){
+								
+						if(m != 4 && !map[m][j]){
+							return 1;
+						}else {
+							if(m != 4 && (map[m][j].value == map[i][j].value)){
+								return 1;
+							}else{
+								if(m-1!=i){
+									return 1;
+								}
+							}
+							break;	
+						}
+					}
+				}else{
+					return 1;
+				}
+			}
+		}
+		alert("cannot move");
+		return 0;
+	}
+
+	var sumValue = 0;
+	cellDom.on('keydown', function(e){
+		if(e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40){
+			if(e.which == 37){
+				turnLeft(4);
+				testTurnLeft(4);
+				getInitField(4, 1);
+			}	
+			if(e.which == 39){
+				turnRight(4);
+				testTurnRight(4);
+				getInitField(4, 1);
+			}	
+			
+			if(e.which == 38){
+				turnUp(4);
+				testTurnUp(4);
+				getInitField(4, 1);
+			}	
+			
+			if(e.which == 40){
+				turnDown(4);
+				getInitField(4, 1);
+			}	
+		}
+	});
+	
+	
+	//画初始图形
+	/*function drawCell(numArr){
+		var CellHtml = "";
+		for(var i = 0; i < numArr.length; i++){
+			CellHtml += '<div class="container_row2">';
+			for(var j = 0; j<numArr[i].length; j++){
+				CellHtml += "<div " + ' data-count="'+ numArr[i][j]+'"  class="cell">'+(numArr[i][j]?numArr[i][j]:'')+" </div>";
+				//var cellDom = $(.cell);
+				//cellDom.css('left', );
+			}
+			CellHtml += "</div>";
+		}
+		
+		var dom = document.getElementsByClassName('container');
+		dom[0].innerHTML += CellHtml;
+	}
+	*/
+	/*function drawBackground(size){
+		var backgroundHtml = "";
+		for(var i = 0; i<size; i++){
+			var k = 0;
+			backgroundHtml += '<div class="container_row">';
+			for(var j = 0; j<size; j++){
+				backgroundHtml += "<div class = 'backgroundCell'> </div>";
+			}
+			backgroundHtml += "</div>";
+		}
+		
+		var dom = document.getElementsByClassName('container');
+		dom[0].innerHTML = backgroundHtml;
+	}
+	*/
+	
+
+
+
+	
+</script>
